@@ -73,4 +73,30 @@ public class BasicTxTest {
         log.info("트랜잭션2 롤백");
         txManager.rollback(tx2);
     }
+
+    /**
+     * 스프링은 여러 트랜잭션이 함께 사용되는 경우,
+     * 처음 트랜잭션을 시작한 '외부 트랜잭션'이 실제 물리 트랜잭션을 관리하도록 한다.
+     * -> 이를 통해 트랜잭션 중복 커밋 문제를 해결한다.
+     */
+    @Test
+    void inner_commit() {
+        log.info("외부 트랜잭션 시작");
+        TransactionStatus outer = txManager.getTransaction(new DefaultTransactionAttribute());
+        log.info("outer.isNewTransaction()={}", outer.isNewTransaction());
+
+        // 메서드 호출(내부 트랜잭션)
+        inner();
+
+        log.info("외부 트랜잭션 커밋");
+        txManager.commit(outer);
+    }
+
+    private void inner() {
+        log.info("내부 트랜잭션 시작");
+        TransactionStatus inner = txManager.getTransaction(new DefaultTransactionAttribute());
+        log.info("inner.isNewTransaction()={}", inner.isNewTransaction());
+        log.info("내부 트랜잭션 커밋");
+        txManager.commit(inner);
+    }
 }
