@@ -99,4 +99,22 @@ public class BasicTxTest {
         log.info("내부 트랜잭션 커밋");
         txManager.commit(inner);
     }
+
+    /**
+     * 외부 트랜잭션에서 시작한 물리 트랜잭션의 범위가 내부 트랜잭션까지 사용됨
+     * 외부 트랜잭션이 롤백되면서 전체(내부, 외부 모두) 내용이 롤백된다.
+     */
+    @Test
+    void outer_rollback() {
+        log.info("외부 트랜잭션 시작");
+        TransactionStatus outer = txManager.getTransaction(new DefaultTransactionAttribute());
+
+        log.info("내부 트랜잭션 시작");
+        TransactionStatus inner = txManager.getTransaction(new DefaultTransactionAttribute());
+        log.info("내부 트랜잭션 커밋");
+        txManager.commit(inner);
+
+        log.info("외부 트랜잭션 롤백");
+        txManager.rollback(outer);
+    }
 }
