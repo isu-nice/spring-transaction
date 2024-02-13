@@ -129,6 +129,29 @@ class MemberServiceTest {
         // then: 모든 데이터가 롤백된다.
         // logRepository 에서 이미 rollback-only 표시를 했기 때문에
         // memberService 의 트랜잭션이 커밋을 호출할 때 모두를 롤백하게 된다.
+        assertTrue(memberRepository.find(username).isEmpty());
+        assertTrue(logRepository.find(username).isEmpty());
+    }
+
+    /**
+     * memberService    @Transactional:ON
+     * memberRepository @Transactional:ON
+     * logRepository    @Transactional:ON(REQUIRES_NEW) Exception
+     */
+    @Test
+    void recoverException_success() {
+        // given
+        String username = "로그예외_recoverException_success";
+
+        // when
+        memberService.joinV2(username);
+
+        // then: 로그는 롤백되고 회원은 커밋된다.
+        /*
+         * logRepository 에서 REQUIRES_NEW 를 사용했기 때문에 항상 새로운 트랜잭션을 생성한다.
+         * 또한, rollback-only 를 표시하지 않고 그냥 트랜잭션을 롤백하고 끝난다.
+         * memberService 는 예외를 복구하고 정상 리턴하므로 트랜잭션을 커밋한다.
+         */
         assertTrue(memberRepository.find(username).isPresent());
         assertTrue(logRepository.find(username).isEmpty());
     }
